@@ -1,0 +1,43 @@
+Build a basic text editor with the following features
+
+Technologies 
+    - RUST language
+
+Technical requirements 
+    -   Keep the code modular
+    -   Make it in a professional production grade project folder structure
+    -   Create build scripts for Windows, Linux and MacOS
+    -   Keep the source code in folder @src/ 
+    -   In a @develop.md file put instruction on the high level design and how to enhance this.
+
+Ability to edit, read, and save text in the folllowing formats
+    - text 
+    - docx
+    - rtf
+    - Markdown(.md)
+
+Ability to format text with the following features
+    Bold, italic, underline, strikethrough of text 
+    bulleting of text 
+    numbering of text 
+    Chnage fonts of text based on system available fonts 
+    Changing color of font
+    Alignment of text
+
+Ability to add table
+    Creating tables
+    Editing tables 
+    inserting  rows above and below a certain row
+    Inserting columns above and below a certain column 
+    Changing formating of text within cell 
+    Changing cell background and foreground color 
+    Alignment of text in cells 
+    
+
+Cut, Copy and pasting
+    Text 
+    Selected Text
+    Tables
+    Selected cells of table 
+
+
