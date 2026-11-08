@@ -1,0 +1,70 @@
+# Builds RustText for Linux, Windows and macOS and attaches the packages to
+# the GitHub release of the tag.
+#
+# Runs automatically when a version tag (v*) is pushed. To (re)build an
+# existing release, run it manually from the Actions tab and enter the tag.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to attach the binaries to (e.g. v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-latest
+          - name: Windows
+            os: windows-latest
+          - name: macOS
+            os: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Both macOS architectures, for a universal binary.
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: scripts/build-linux.sh
+
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        run: scripts/build-macos.sh --universal
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: scripts/build-windows.ps1
+
+      - name: Upload to release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Create the release if the tag has none yet (tag pushes).
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || gh release create "$TAG" --title "RustText ${TAG#v}" --generate-notes || true
+          gh release upload "$TAG" dist/rusttext-* --clobber

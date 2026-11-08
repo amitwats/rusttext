@@ -11,8 +11,10 @@
     powershell -ExecutionPolicy Bypass -File scripts\build-windows.ps1 -SkipTests -Profile debug
 #>
 param(
+    # Not named $Profile: that clashes with PowerShell's automatic $PROFILE variable.
+    [Alias("Profile")]
     [ValidateSet("release", "debug")]
-    [string]$Profile = "release",
+    [string]$BuildProfile = "release",
     [switch]$SkipTests,
     [string]$Target = ""
 )
@@ -28,7 +30,7 @@ $version = (Select-String -Path Cargo.toml -Pattern '^version\s*=\s*"(.+)"' | Se
 $arch = if ($Target) { $Target } else { $env:PROCESSOR_ARCHITECTURE.ToLower() }
 
 $cargoArgs = @()
-if ($Profile -eq "release") { $cargoArgs += "--release" }
+if ($BuildProfile -eq "release") { $cargoArgs += "--release" }
 if ($Target) { $cargoArgs += @("--target", $Target) }
 
 if (-not $SkipTests) {
@@ -37,11 +39,11 @@ if (-not $SkipTests) {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
-Write-Host "==> Building RustText $version ($Profile)"
+Write-Host "==> Building RustText $version ($BuildProfile)"
 cargo build @cargoArgs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-$outDir = if ($Target) { "target\$Target\$Profile" } else { "target\$Profile" }
+$outDir = if ($Target) { "target\$Target\$BuildProfile" } else { "target\$BuildProfile" }
 New-Item -ItemType Directory -Force -Path dist\windows | Out-Null
 Copy-Item "$outDir\rusttext.exe" dist\windows\ -Force
 Copy-Item README.md dist\windows\ -Force
